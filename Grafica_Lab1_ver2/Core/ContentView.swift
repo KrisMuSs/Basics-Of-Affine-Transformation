@@ -197,7 +197,7 @@ struct TaskView: View {
                 angle += 0.02 * direction
             }
             // каждые 4 секунды direction *= -1. То есть знак меняется, и вращение идёт то туда, то обратно.
-            Timer.scheduledTimer(withTimeInterval: 4, repeats: true) { _ in
+            Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { _ in
                 direction *= -1
             }
         }

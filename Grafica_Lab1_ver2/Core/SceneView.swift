@@ -34,7 +34,7 @@ struct SceneFactory {
         let node = SCNNode()
 
         // Вариант с кубом
-       // let v = makeCube(s: size / 2.0)
+//        let v = makeCube(s: size / 2.0)
         
         // Вариант с буквой М
          let v = make3DM(s: 1.0)
