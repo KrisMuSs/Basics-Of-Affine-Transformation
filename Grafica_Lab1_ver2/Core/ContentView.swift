@@ -167,50 +167,52 @@ struct ContentView: View {
      }
  }
 
+
+import SwiftUI
+import SceneKit
+
 struct TaskView: View {
-    @State private var angle: Float = 0
-    @State private var direction: Float = 1 // direction это просто множитель, который определяет в какую сторону крутится куб
-    @State private var axis: String = "Y"
+    @State private var rotation = SCNVector3(0, 0, 0)  // текущие углы по X, Y, Z
+    @State private var currentAxis: Axis = .y          // текущая ось вращения
+    @State private var direction: Float = 1.0          // направление вращения
+
+    enum Axis: CaseIterable {
+        case x, y, z
+    }
 
     var body: some View {
-        VStack(spacing: 12) {
-            SceneView(
-                scene: SceneFactory.makeScene(transform: finalMatrix()),
-                options: [.autoenablesDefaultLighting, .allowsCameraControl]
-            )
-            .frame(height: 400)
-
-            HStack(spacing: 12) {
-                            ForEach(["X","Y","Z"], id: \.self) { a in
-                                Button(a) { axis = a }
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 14)
-                                    .background(axis == a ? Color.blue.opacity(0.25) : Color(white: 0.95))
-                                    .cornerRadius(8)
-                            }
-                        }
-
-            Text("Ось: \(axis)")
-        }
+        SceneView(
+            scene: SceneFactory.makeScene(transform: finalMatrix()),
+            options: [.autoenablesDefaultLighting, .allowsCameraControl]
+        )
         .onAppear {
+            // Таймер обновления угла
             Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
-                angle += 0.02 * direction
+                switch currentAxis {
+                case .x: rotation.x += 0.02 * direction
+                case .y: rotation.y += 0.02 * direction
+                case .z: rotation.z += 0.02 * direction
+                }
             }
-            // каждые 4 секунды direction *= -1. То есть знак меняется, и вращение идёт то туда, то обратно.
-            Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { _ in
-                direction *= -1
+
+            // Таймер случайной смены направления и оси
+            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                direction = Bool.random() ? 1.0 : -1.0
+                currentAxis = Axis.allCases.randomElement()!
             }
         }
     }
 
+    // Итоговая матрица с учётом текущих углов вращения
     func finalMatrix() -> SCNMatrix4 {
-        switch axis {
-        case "X": return rotationXMatrix(angle: angle)
-        case "Z": return rotationZMatrix(angle: angle)
-        default:  return rotationYMatrix(angle: angle)
-        }
+        let Rx = rotationXMatrix(angle: rotation.x)
+        let Ry = rotationYMatrix(angle: rotation.y)
+        let Rz = rotationZMatrix(angle: rotation.z)
+        // Вносим изменения для одновременного вращения
+        return multiply(multiply(Ry, Rx), Rz)
     }
 }
+
 
 
 #Preview {
